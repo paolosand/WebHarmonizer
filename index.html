@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Recorder & Player</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎙️ Audio Recorder & Player</h1>
+        
+        <div class="controls">
+            <button id="start">▶ Start Recording</button>
+            <button id="stop" disabled>⏹ Stop Recording</button>
+        </div>
+
+        <audio id="audioPlayback" controls></audio>
+
+        <h2>🎵 Saved Recordings</h2>
+        <ul id="recordingsList"></ul>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+
+        document.getElementById('start').addEventListener('click', async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const file = new File([audioBlob], "recording.webm", { type: "audio/webm" });
+
+                const formData = new FormData();
+                formData.append("audio", file);
+
+                await fetch("http://localhost:3000/upload", {
+                    method: "POST",
+                    body: formData
+                });
+
+                alert("Audio saved successfully!");
+                loadRecordings();
+            };
+
+            mediaRecorder.start();
+            document.getElementById('start').disabled = true;
+            document.getElementById('stop').disabled = false;
+        });
+
+        document.getElementById('stop').addEventListener('click', () => {
+            mediaRecorder.stop();
+            document.getElementById('start').disabled = false;
+            document.getElementById('stop').disabled = true;
+        });
+
+        async function loadRecordings() {
+            const response = await fetch("http://localhost:3000/audio-files");
+            const files = await response.json();
+            const list = document.getElementById("recordingsList");
+            list.innerHTML = "";
+
+            files.forEach(file => {
+                const li = document.createElement("li");
+                li.classList.add("audio-item");
+
+                const audio = document.createElement("audio");
+                audio.controls = true;
+                audio.src = `http://localhost:3000/audio/${file}`;
+
+                li.appendChild(document.createTextNode(file));
+                li.appendChild(audio);
+                list.appendChild(li);
+            });
+        }
+
+        loadRecordings();
+    </script>
+</body>
+</html>
