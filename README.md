@@ -13,6 +13,7 @@ Web Harmonizer is a web application that harmonizes a melody recorded by a user.
 - **Audio Processing:** `librosa`
 
 ## To Do
+- [ ] Record and save audio recordings using JavaScript
 - [ ] Implement melody recording functionality using JavaScript
 - [ ] Process recorded audio with Python and `librosa`
 - [ ] Generate harmonization based on music theory rules
