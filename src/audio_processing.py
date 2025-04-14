@@ -110,3 +110,4 @@ def synthesize_melody(x, sr):
         tones = np.append(tones, tone)
 
     return tones
+
